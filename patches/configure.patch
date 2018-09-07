@@ -1,0 +1,62 @@
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/configure	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/configure	2018-09-07 13:25:43.951407410 +0200
+@@ -4659,6 +4659,59 @@
+ fi
+ 
+ #Check members
++
++# <Antonio-Petricca@2018>
++
++ac_fn_c_check_decl "$LINENO" "global_page_state" "ac_cv_have_decl_global_page_state" "#include <linux/swap.h>
++"
++if test "x$ac_cv_have_decl_global_page_state" = xyes; then :
++  ac_have_decl=1
++else
++  ac_have_decl=0
++fi
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_DECL_GLOBAL_PAGE_STATE $ac_have_decl
++_ACEOF
++
++ac_fn_c_check_decl "$LINENO" "setup_timer" "ac_cv_have_decl_setup_timer" "#include <linux/timer.h>
++"
++if test "x$ac_cv_have_decl_setup_timer" = xyes; then :
++  ac_have_decl=1
++else
++  ac_have_decl=0
++fi
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_DECL_SETUP_TIMER $ac_have_decl
++_ACEOF
++
++ac_fn_c_check_member "$LINENO" "struct bio" "bi_bdev" "ac_cv_member_struct_bio_bi_bdev" "#include <linux/blk_types.h>
++"
++if test "x$ac_cv_member_struct_bio_bi_bdev" = xyes; then :
++  ac_have_decl=1
++else
++  ac_have_decl=0
++fi
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_STRUCT_BIO_BI_BDEV $ac_have_decl
++_ACEOF
++
++ac_fn_c_check_member "$LINENO" "struct bio" "bi_error" "ac_cv_member_struct_bio_bi_error" "#include <linux/blk_types.h>
++"
++if test "x$ac_cv_member_struct_bio_bi_error" = xyes; then :
++  ac_have_decl=1
++else
++  ac_have_decl=0
++fi
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_STRUCT_BIO_BI_ERROR $ac_have_decl
++_ACEOF
++
++# </Antonio-Petricca@2018>
++
+ ac_fn_c_check_member "$LINENO" "struct bio" "bi_iter" "ac_cv_member_struct_bio_bi_iter" "#include <linux/blk_types.h>
+ "
+ if test "x$ac_cv_member_struct_bio_bi_iter" = xyes; then :

@@ -1,0 +1,68 @@
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/ifslinux/config.h.in	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/config.h.in	2018-09-07 13:23:12.456401363 +0200
+@@ -1,5 +1,41 @@
+ /* ifslinux/config.h.in.  Generated from configure.in by autoheader.  */
+ 
++// <Antonio-Petricca@2018>
++
++// Porting on kernel 4.15
++
++/*
++
++  https://communities.vmware.com/thread/572148
++  https://communities.vmware.com/thread/591776
++  https://github.com/mkubecek/vmware-host-modules/commit/770c7ffe611520ac96490d235399554c64e87d9f
++
++*/
++
++#undef HAVE_DECL_GLOBAL_PAGE_STATE
++
++/*
++
++  // https://www.spinics.net/lists/linux-tip-commits/msg41515.html
++  // http://radek.io/2012/11/10/magical-container_of-macro/
++  // https://lwn.net/Articles/735887/
++  // https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=686fef928bba6be13cabe639f154af7d72b63120
++
++*/
++
++#undef HAVE_DECL_SETUP_TIMER
++
++/*
++
++  https://github.com/akiradeveloper/dm-writeboost/issues/182
++
++*/
++
++#undef HAVE_STRUCT_BIO_BI_BDEV
++#undef HAVE_STRUCT_BIO_BI_ERROR
++
++// </Antonio-Petricca@2018>
++
+ /* Blkdev_issue_flush V3 macro helper */
+ #undef Blkdev_issue_flush
+ 
+@@ -588,3 +624,22 @@
+ 
+ /* HAVE_STRUCT_ helper macro */
+ #undef is_struct
++
++/* <Antonio-Petricca@2018>
++
++  Fix up for Kernel 4.15
++
++</Antonio-Petricca@2018> */
++
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++
++/*
++
++  http://lists.suse.com/pipermail/sle-beta/2017-November/000158.html
++
++*/
++
++#define page_cache_alloc_cold(x) \
++        page_cache_alloc((x))
++
++#endif
+\ No newline at end of file

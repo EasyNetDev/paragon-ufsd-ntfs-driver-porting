@@ -1,0 +1,209 @@
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/ifslinux/ufsdvfs.c	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/ufsdvfs.c	2018-09-07 14:25:49.389875893 +0200
+@@ -1233,7 +1233,9 @@
+     DebugTrace( 0, UFSD_LEVEL_ERROR, ("**** seq=%x: size 0x%x  asize 0x%x", block->seq, block->size, block->asize ));
+     DebugTrace( 0, UFSD_LEVEL_ERROR, ("**** HeapFree(%p) %s barrier failed at 0x%zx", p, hint, PtrOffset( block, tst ) + o ));
+     ufsd_turn_on_trace_level();
++
+     ufsdapi_dump_memory( block, 512 );
++
+     ufsd_revert_trace_level();
+     BUG_ON(1);
+   }
+@@ -1776,8 +1778,21 @@
+   unsigned long nr_pages, nr_anon, nr_free, max_ra;
+   struct blk_plug plug;
+ 
+-  nr_anon = global_page_state( NR_ACTIVE_ANON );
+-  nr_free = global_page_state( NR_FREE_PAGES );
++  // <Antonio-Petricca@2018>
++
++  //nr_anon = global_page_state( NR_ACTIVE_ANON );
++  //nr_free = global_page_state( NR_FREE_PAGES );
++
++  #if !HAVE_DECL_GLOBAL_PAGE_STATE
++    nr_anon = global_zone_page_state( NR_ACTIVE_ANON );
++    nr_free = global_zone_page_state( NR_FREE_PAGES );
++  #else
++    nr_anon = global_page_state( NR_ACTIVE_ANON );
++    nr_free = global_page_state( NR_FREE_PAGES );
++  #endif
++
++  // </Antonio-Petricca@2018>
++
+   max_ra  = ( nr_anon + nr_free ) >> 1;
+ 
+   if ( 0 != sbi->options.raKb ) {
+@@ -1885,7 +1900,18 @@
+   sector_t  devblock        = offset >> sb->s_blocksize_bits;
+   unsigned long nBlocks     = bytes >> sb->s_blocksize_bits;
+   unsigned long cnt         = 0;
+-  unsigned long limit       = global_page_state( NR_FREE_PAGES ) << (PAGE_SHIFT - sb->s_blocksize_bits);
++
++  // <Antonio-Petricca@2018>
++
++  //unsigned long limit = global_page_state( NR_FREE_PAGES ) << (PAGE_SHIFT - sb->s_blocksize_bits);
++
++  #if !HAVE_DECL_GLOBAL_PAGE_STATE
++    unsigned long limit = global_zone_page_state( NR_FREE_PAGES ) << (PAGE_SHIFT - sb->s_blocksize_bits);
++  #else
++    unsigned long limit = global_page_state( NR_FREE_PAGES ) << (PAGE_SHIFT - sb->s_blocksize_bits);
++  #endif
++
++  // </Antonio-Petricca@2018>
+ 
+   if ( limit >= 0x2000 )
+     limit -= 0x1000;
+@@ -8612,8 +8638,20 @@
+ #ifdef BIO_UPTODATE
+   err = !test_bit( BIO_UPTODATE, &bio->bi_flags );
+ #else
++  // <Antonio-Petricca@2018>
++
+   // 4.3+
+-  int err = bio->bi_error;
++  //int err = bio->bi_error;
++
++  #if !HAVE_STRUCT_BIO_BI_ERROR
++    int err = (BLK_STS_OK != bio->bi_status);
++
++  #else
++    // 4.3+
++    int err = bio->bi_error;
++  #endif
++
++  // </Antonio-Petricca@2018>
+ #endif
+ 
+ //  printk( "end_io_read at %llx sz=%x, cnt=%x\n", (UINT64)BIO_BISECTOR( bio ) << 9, BIO_BISIZE( bio ), (unsigned)bio->bi_vcnt );
+@@ -8663,8 +8701,20 @@
+ #ifdef BIO_UPTODATE
+   err = !test_bit( BIO_UPTODATE, &bio->bi_flags );
+ #else
++  // <Antonio-Petricca@2018>
++
+   // 4.3+
+-  int err = bio->bi_error;
++  //int err = bio->bi_error;
++
++  #if !HAVE_STRUCT_BIO_BI_ERROR
++    int err = (BLK_STS_OK != bio->bi_status);
++
++  #else
++    // 4.3+
++    int err = bio->bi_error;
++  #endif
++
++  // </Antonio-Petricca@2018>
+ #endif
+ 
+   if ( err ) {
+@@ -8704,7 +8754,19 @@
+     struct bio *bio = bio_alloc( GFP_NOFS|__GFP_HIGH, nr_vecs ); // GFP_NOIO
+     if ( likely( NULL != bio ) ) {
+       BIO_BISECTOR( bio ) = first_sector;
+-      bio->bi_bdev    = bdev;
++
++      // <Antonio-Petricca@2018>
++
++      //bio->bi_bdev    = bdev;
++
++      #if !HAVE_STRUCT_BIO_BI_BDEV  
++        // https://lkml.org/lkml/2017/8/25/136
++        bio_set_dev(bio, bdev);
++      #else
++        bio->bi_bdev = bdev;
++      #endif
++
++      // </Antonio-Petricca@2018>
+ 
+       DebugTrace( 0, UFSD_LEVEL_BIO, ("bio+: o=%" PSCT "x", first_sector << 9 ));
+       return bio;
+@@ -12366,18 +12428,29 @@
+   mod_timer( &sbi->flush_timer, HZ + sbi->last_dirty + msecs_to_jiffies( sec * 1000 ) );
+ }
+ 
+-
+ ///////////////////////////////////////////////////////////
+ // flush_timer_fn
+ //
+ // Timer function
+ ///////////////////////////////////////////////////////////
+-static void
+-flush_timer_fn(
+-    IN unsigned long data
+-    )
+-{
+-  usuper *sbi = (usuper*)data;
++
++// <Antonio-Petricca@2018>
++
++#if !HAVE_DECL_SETUP_TIMER
++
++  static void flush_timer_fn(struct timer_list *t)
++  {
++    usuper* sbi = from_timer(sbi, t, flush_timer);
++  
++#else
++
++  static void flush_timer_fn(IN unsigned long data)
++  {
++    usuper *sbi = (usuper*)data;
++
++#endif
++
++// </Antonio-Petricca@2018>
+ 
+   if ( !sbi->bdirty ) {
+     // Do not wake up flush thread
+@@ -12423,7 +12496,18 @@
+   //
+   // Set up an interval timer which can be used to trigger a flush wakeup after the flush interval expires
+   //
++
++// <Antonio-Petricca@2018>
++  
++  // setup_timer( &sbi->flush_timer, flush_timer_fn, (unsigned long)sbi );
++
++#if HAVE_DECL_SETUP_TIMER
+   setup_timer( &sbi->flush_timer, flush_timer_fn, (unsigned long)sbi );
++#else
++  timer_setup( &sbi->flush_timer, flush_timer_fn, 0 );
++#endif
++
++// </Antonio-Petricca@2018>
+ 
+   wake_up( &sbi->wait_done_flush );
+ 
+@@ -14294,6 +14378,11 @@
+       "Default options: " DEFAULT_MOUNT_OPTIONS "\n"
+ #endif
+       "" );
++
++// <Antonio-Petricca@2018>
++  printk( KERN_NOTICE QUOTED_UFSD_DEVICE": ported on kernel 4.15 by Antonio Petricca @ 2018 (https://github.com/antonio-petricca).");
++// </Antonio-Petricca@2018>
++
+   printk( KERN_NOTICE QUOTED_UFSD_DEVICE": PAGE_SIZE=%uK, THREAD_SIZE=%uk\n", (unsigned)(PAGE_SIZE>>10), (unsigned)(THREAD_SIZE>>10) );
+ #endif
+ 
+@@ -14431,7 +14520,18 @@
+ //
+ MODULE_DESCRIPTION("Paragon " QUOTED_UFSD_DEVICE " driver");
+ MODULE_AUTHOR("Andrey Shedel & Alexander Mamaev");
+-MODULE_LICENSE("Commercial product");
++
++// <Antonio-Petricca@2018>
++
++//MODULE_LICENSE("Commercial product");
++
++#ifdef UFSD_DEBUG
++  MODULE_LICENSE("GPL"); // Allow call of "vfs_write"
++#else
++  MODULE_LICENSE("Commercial product");
++#endif
++
++// </Antonio-Petricca@2018>
+ 
+ #ifdef UFSD_TRACE
+ module_param_string(trace, ufsd_trace_level_, sizeof(ufsd_trace_level_), S_IRUGO);

@@ -1,0 +1,39 @@
+#!/bin/bash
+
+PARAGON_ARCHIVE=Paragon-715-FRE_NTFS_Linux_9.5_Express.tar.gz
+PARAGON_FILE=/tmp/${PARAGON_ARCHIVE}
+PARAGON_URL=http://dl.paragon-software.com/free/${PARAGON_ARCHIVE}
+
+echo "Preparing \"${PARAGON_ARCHIVE}\"..."
+
+   [ -f ${PARAGON_FILE} ] \
+|| wget ${PARAGON_URL} -O ${PARAGON_FILE} \
+|| exit $?
+
+echo "Decompressing..."
+
+SOURCES_DIR=$(readlink -f $(dirname $0))/sources
+
+   ([ -d ${SOURCES_DIR} ] || mkdir -p ${SOURCES_DIR}) \
+&& cd ${SOURCES_DIR} \
+&& rm -rf * \
+&& tar xf ${PARAGON_FILE} \
+|| exit $?
+
+echo "Patching..."
+
+PATCHES_DIR=$(readlink -f ${SOURCES_DIR}/../patches)
+
+function applyPatch {
+    local FILE_NAME=$1
+
+    patch -bs -V numbered ${SOURCES_DIR}/${FILE_NAME} ${PATCHES_DIR}/${FILE_NAME}.patch
+    echo "Patched files \"${SOURCES_DIR}/${FILE_NAME}\"."
+}
+
+   applyPatch configure \
+&& applyPatch ifslinux/config.h.in \
+&& applyPatch ifslinux/ufsdvfs.c \
+|| exit $?
+
+echo "Configuration completed. Please, look at README.md in order to build and run the patched driver."
