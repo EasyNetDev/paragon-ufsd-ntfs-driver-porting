@@ -1,5 +1,5 @@
 --- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/ifslinux/ufsdvfs.c	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/ufsdvfs.c	2018-09-07 14:25:49.389875893 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/ufsdvfs.c	2018-09-12 16:52:41.002610352 +0200
 @@ -1233,7 +1233,9 @@
      DebugTrace( 0, UFSD_LEVEL_ERROR, ("**** seq=%x: size 0x%x  asize 0x%x", block->seq, block->size, block->asize ));
      DebugTrace( 0, UFSD_LEVEL_ERROR, ("**** HeapFree(%p) %s barrier failed at 0x%zx", p, hint, PtrOffset( block, tst ) + o ));
@@ -10,7 +10,34 @@
      ufsd_revert_trace_level();
      BUG_ON(1);
    }
-@@ -1776,8 +1778,21 @@
+@@ -1704,7 +1706,26 @@
+   }
+ 
+   bh->b_state = 0;
++
++// <Antonio-Petricca@2018>
++
++  // init_buffer( bh, end_buffer_read_sync, NULL );
++
++#if HAVE_DECL_INIT_BUFFER 
++
+   init_buffer( bh, end_buffer_read_sync, NULL );
++
++#else
++
++  // https://elixir.bootlin.com/linux/v4.13.12/source/fs/buffer.c
++
++  bh->b_end_io = end_buffer_read_sync;
++	bh->b_private = NULL;
++
++#endif
++
++ // </Antonio-Petricca@2018>
++
+   atomic_set( &bh->b_count, 2 );
+   set_bh_page( bh, page, bytes2skip );
+   bh->b_size    = 512;
+@@ -1776,8 +1797,21 @@
    unsigned long nr_pages, nr_anon, nr_free, max_ra;
    struct blk_plug plug;
  
@@ -34,7 +61,7 @@
    max_ra  = ( nr_anon + nr_free ) >> 1;
  
    if ( 0 != sbi->options.raKb ) {
-@@ -1885,7 +1900,18 @@
+@@ -1885,7 +1919,18 @@
    sector_t  devblock        = offset >> sb->s_blocksize_bits;
    unsigned long nBlocks     = bytes >> sb->s_blocksize_bits;
    unsigned long cnt         = 0;
@@ -54,7 +81,32 @@
  
    if ( limit >= 0x2000 )
      limit -= 0x1000;
-@@ -8612,8 +8638,20 @@
+@@ -5493,8 +5538,24 @@
+ {
+   if ( NULL == acl )
+     return;
++
++// <Antonio-Petricca@2018>
++
++  /*
++    if ( atomic_dec_and_test( &acl->a_refcount ) )
++      kfree( acl );
++  */
++
++#if IS_STRUCT_POSIXACL_AREFCOUNT_OF_TYPE_ATOMICT
+   if ( atomic_dec_and_test( &acl->a_refcount ) )
+     kfree( acl );
++#else
++  if ( atomic_dec_and_test( &acl->a_refcount.refs ) )
++    kfree( acl );
++#endif
++
++// </Antonio-Petricca@2018>
++
+ }
+ 
+ 
+@@ -8612,8 +8673,20 @@
  #ifdef BIO_UPTODATE
    err = !test_bit( BIO_UPTODATE, &bio->bi_flags );
  #else
@@ -76,7 +128,7 @@
  #endif
  
  //  printk( "end_io_read at %llx sz=%x, cnt=%x\n", (UINT64)BIO_BISECTOR( bio ) << 9, BIO_BISIZE( bio ), (unsigned)bio->bi_vcnt );
-@@ -8663,8 +8701,20 @@
+@@ -8663,8 +8736,20 @@
  #ifdef BIO_UPTODATE
    err = !test_bit( BIO_UPTODATE, &bio->bi_flags );
  #else
@@ -98,7 +150,7 @@
  #endif
  
    if ( err ) {
-@@ -8704,7 +8754,19 @@
+@@ -8704,7 +8789,19 @@
      struct bio *bio = bio_alloc( GFP_NOFS|__GFP_HIGH, nr_vecs ); // GFP_NOIO
      if ( likely( NULL != bio ) ) {
        BIO_BISECTOR( bio ) = first_sector;
@@ -119,7 +171,7 @@
  
        DebugTrace( 0, UFSD_LEVEL_BIO, ("bio+: o=%" PSCT "x", first_sector << 9 ));
        return bio;
-@@ -12366,18 +12428,29 @@
+@@ -12366,18 +12463,29 @@
    mod_timer( &sbi->flush_timer, HZ + sbi->last_dirty + msecs_to_jiffies( sec * 1000 ) );
  }
  
@@ -156,7 +208,7 @@
  
    if ( !sbi->bdirty ) {
      // Do not wake up flush thread
-@@ -12423,7 +12496,18 @@
+@@ -12423,7 +12531,18 @@
    //
    // Set up an interval timer which can be used to trigger a flush wakeup after the flush interval expires
    //
@@ -175,19 +227,19 @@
  
    wake_up( &sbi->wait_done_flush );
  
-@@ -14294,6 +14378,11 @@
+@@ -14294,6 +14413,11 @@
        "Default options: " DEFAULT_MOUNT_OPTIONS "\n"
  #endif
        "" );
 +
 +// <Antonio-Petricca@2018>
-+  printk( KERN_NOTICE QUOTED_UFSD_DEVICE": ported on kernel 4.15 by Antonio Petricca @ 2018 (https://github.com/antonio-petricca).");
++  printk( KERN_NOTICE QUOTED_UFSD_DEVICE": ported on kernel 4.16 by Antonio Petricca @ 2018 (https://github.com/antonio-petricca).");
 +// </Antonio-Petricca@2018>
 +
    printk( KERN_NOTICE QUOTED_UFSD_DEVICE": PAGE_SIZE=%uK, THREAD_SIZE=%uk\n", (unsigned)(PAGE_SIZE>>10), (unsigned)(THREAD_SIZE>>10) );
  #endif
  
-@@ -14431,7 +14520,18 @@
+@@ -14431,7 +14555,18 @@
  //
  MODULE_DESCRIPTION("Paragon " QUOTED_UFSD_DEVICE " driver");
  MODULE_AUTHOR("Andrey Shedel & Alexander Mamaev");

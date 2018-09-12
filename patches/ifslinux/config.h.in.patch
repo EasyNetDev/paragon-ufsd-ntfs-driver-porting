@@ -1,11 +1,13 @@
 --- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/ifslinux/config.h.in	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/config.h.in	2018-09-07 13:23:12.456401363 +0200
-@@ -1,5 +1,41 @@
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/config.h.in	2018-09-12 16:51:35.323335650 +0200
+@@ -1,5 +1,57 @@
  /* ifslinux/config.h.in.  Generated from configure.in by autoheader.  */
  
 +// <Antonio-Petricca@2018>
 +
-+// Porting on kernel 4.15
++/********/
++/* 4.15 */
++/********/
 +
 +/*
 +
@@ -37,12 +39,26 @@
 +#undef HAVE_STRUCT_BIO_BI_BDEV
 +#undef HAVE_STRUCT_BIO_BI_ERROR
 +
++/********/
++/* 4.16 */
++/********/
++
++// https://elixir.bootlin.com/linux/v4.13.12/source/fs/buffer.c
++
++#undef HAVE_DECL_INIT_BUFFER
++
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0)
++  #define IS_STRUCT_POSIXACL_AREFCOUNT_OF_TYPE_ATOMICT 1
++#else
++  #define IS_STRUCT_POSIXACL_AREFCOUNT_OF_TYPE_ATOMICT 0
++#endif
++
 +// </Antonio-Petricca@2018>
 +
  /* Blkdev_issue_flush V3 macro helper */
  #undef Blkdev_issue_flush
  
-@@ -588,3 +624,22 @@
+@@ -588,3 +640,22 @@
  
  /* HAVE_STRUCT_ helper macro */
  #undef is_struct

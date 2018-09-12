@@ -1,11 +1,15 @@
 --- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/configure	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/configure	2018-09-07 13:25:43.951407410 +0200
-@@ -4659,6 +4659,59 @@
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/configure	2018-09-12 16:25:45.032455565 +0200
+@@ -4659,6 +4659,80 @@
  fi
  
  #Check members
 +
 +# <Antonio-Petricca@2018>
++
++########
++# 4.15 #
++########
 +
 +ac_fn_c_check_decl "$LINENO" "global_page_state" "ac_cv_have_decl_global_page_state" "#include <linux/swap.h>
 +"
@@ -53,6 +57,23 @@
 +
 +cat >>confdefs.h <<_ACEOF
 +#define HAVE_STRUCT_BIO_BI_ERROR $ac_have_decl
++_ACEOF
++
++########
++# 4.16 #
++########
++
++ac_fn_c_check_decl "$LINENO" "init_buffer" "ac_cv_have_decl_init_buffer" "#include <linux/buffer_head.h>
++"
++
++if test "x$ac_cv_have_decl_init_buffer" = xyes; then :
++  ac_have_decl=1
++else
++  ac_have_decl=0
++fi
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_DECL_INIT_BUFFER $ac_have_decl
 +_ACEOF
 +
 +# </Antonio-Petricca@2018>
