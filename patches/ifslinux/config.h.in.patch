@@ -1,6 +1,6 @@
 --- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/ifslinux/config.h.in	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/config.h.in	2018-09-13 07:54:19.763942903 +0200
-@@ -1,5 +1,65 @@
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/config.h.in	2018-09-13 13:47:32.106095754 +0200
+@@ -1,5 +1,80 @@
  /* ifslinux/config.h.in.  Generated from configure.in by autoheader.  */
  
 +// <Antonio-Petricca@2018>
@@ -61,12 +61,27 @@
 +
 +#undef HAVE_STRUCT_ADDRESS_SPACE_TREE_LOCK
 +
++/********/
++/* 4.18 */
++/********/
++
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
++  #define IS_TIMESPEC_64_BIT 1
++#else
++  #define IS_TIMESPEC_64_BIT 0
++#endif
++
++/*
++  https://elixir.bootlin.com/linux/latest/source/include/linux/fs.h#L572
++  https://elixir.bootlin.com/linux/v4.17.19/source/include/linux/fs.h#L570
++*/
++
 +// </Antonio-Petricca@2018>
 +
  /* Blkdev_issue_flush V3 macro helper */
  #undef Blkdev_issue_flush
  
-@@ -588,3 +648,22 @@
+@@ -588,3 +663,22 @@
  
  /* HAVE_STRUCT_ helper macro */
  #undef is_struct

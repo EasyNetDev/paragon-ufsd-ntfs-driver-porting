@@ -6,11 +6,11 @@ That driver comes with a [Free Limited Version](https://www.paragon-software.com
 
 ## State of the art
 
-At the time I am writing (September 7, 2018) it supports kernel up to the 4.12.
+At the time I am writing (September 13, 2018) it supports kernel up to the 4.12.
 
 ## Goals
 
-The goal of this project is to support kernels 4.15 to 4.17.
+The goal of this project is to support kernels 4.15 to 4.18.
 
 ## License
 

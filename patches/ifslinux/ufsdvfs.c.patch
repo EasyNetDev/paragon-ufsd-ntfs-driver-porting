@@ -1,6 +1,229 @@
 --- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/ifslinux/ufsdvfs.c	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/ufsdvfs.c	2018-09-13 08:49:22.085889443 +0200
-@@ -1233,7 +1233,9 @@
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/ufsdvfs.c	2018-09-13 13:59:17.555163299 +0200
+@@ -707,10 +707,21 @@
+ //
+ // Converts posix time into timestamp
+ ///////////////////////////////////////////////////////////
++
+ static inline void
+ posix2kernel(
+     IN  UINT64  tm,
++// <Antonio-Petricca@2018>
++
++  // OUT struct timespec *ts
++
++#if IS_TIMESPEC_64_BIT
+     OUT struct timespec *ts
++#else
++    OUT struct timespec64 *ts
++#endif
++
++// </Antonio-Petricca@2018>
+     )
+ {
+   union utimespec ut;
+@@ -719,7 +730,6 @@
+   ts->tv_nsec = ut.tv_nsec;
+ }
+ 
+-
+ ///////////////////////////////////////////////////////////
+ // kernel2posix
+ //
+@@ -727,7 +737,17 @@
+ ///////////////////////////////////////////////////////////
+ static inline UINT64
+ kernel2posix(
+-    IN const struct timespec *ts
++// <Antonio-Petricca@2018>
++
++  // IN struct timespec *ts
++
++#if IS_TIMESPEC_64_BIT
++    IN struct timespec *ts
++#else
++    IN struct timespec64 *ts
++#endif
++
++// </Antonio-Petricca@2018>
+     )
+ {
+   union utimespec ut;
+@@ -746,7 +766,18 @@
+ UINT64 UFSDAPI_CALL
+ current_time_posix( void )
+ {
+-  struct timespec ts = current_kernel_time();
++// <Antonio-Petricca@2018>
++
++  //struct timespec ts = current_kernel_time();
++
++#if IS_TIMESPEC_64_BIT
++    struct timespec ts = current_kernel_time();
++#else
++    struct timespec64 ts = current_kernel_time64();
++#endif
++
++// </Antonio-Petricca@2018>
++
+   return kernel2posix( &ts );
+ }
+ #else
+@@ -766,7 +797,17 @@
+ ///////////////////////////////////////////////////////////
+ static inline UINT64
+ kernel2nt(
+-    IN const struct timespec *ts
++// <Antonio-Petricca@2018>
++
++  // IN struct timespec *ts
++
++#if IS_TIMESPEC_64_BIT
++    IN struct timespec *ts
++#else
++    IN struct timespec64 *ts
++#endif
++
++// </Antonio-Petricca@2018>
+     )
+ {
+   // 10^7 units of 100 nanoseconds in one second
+@@ -782,7 +823,17 @@
+ static inline void
+ nt2kernel(
+     IN  const UINT64    tm,
++// <Antonio-Petricca@2018>
++
++  // OUT struct timespec *ts
++
++#if IS_TIMESPEC_64_BIT
+     OUT struct timespec *ts
++#else
++    OUT struct timespec64 *ts
++#endif
++
++// </Antonio-Petricca@2018>
+     )
+ {
+   UINT64 t    = tm - _100ns2seconds*SecondsToStartOf1970;
+@@ -800,7 +851,18 @@
+ UINT64 UFSDAPI_CALL
+ current_time_nt( void )
+ {
+-  struct timespec ts = current_kernel_time();
++// <Antonio-Petricca@2018>
++
++  //struct timespec ts = current_kernel_time();
++
++#if IS_TIMESPEC_64_BIT
++    struct timespec ts = current_kernel_time();
++#else
++    struct timespec64 ts = current_kernel_time64();
++#endif
++
++// </Antonio-Petricca@2018>
++
+   return kernel2nt( &ts );
+ }
+ 
+@@ -815,12 +877,34 @@
+ //
+ // Returns current time (to store in inode)
+ ///////////////////////////////////////////////////////////
+-static inline struct timespec
++// <Antonio-Petricca@2018>
++
++  //static inline struct timespec
++
++#if IS_TIMESPEC_64_BIT
++    static inline struct timespec
++#else
++    static inline struct timespec64
++#endif
++
++// </Antonio-Petricca@2018>
++
+ ufsd_inode_current_time(
+     IN usuper *sbi
+     )
+ {
+-  struct timespec ts = current_kernel_time();
++// <Antonio-Petricca@2018>
++
++  //struct timespec ts = current_kernel_time();
++
++#if IS_TIMESPEC_64_BIT
++    struct timespec ts = current_kernel_time();
++#else
++    struct timespec64 ts = current_kernel_time64();
++#endif
++
++// </Antonio-Petricca@2018>
++
+   if ( is_hfs( &sbi->options ) )
+     ts.tv_nsec = 0;
+   else if ( is_fat( &sbi->options ) ) {
+@@ -845,15 +929,40 @@
+ // Truncate time to a granularity
+ // Returns 1 if changed
+ ///////////////////////////////////////////////////////////
++
+ static inline int
+ ufsd_time_trunc(
+     IN usuper *sbi,
++// <Antonio-Petricca@2018>
++
++/*
++    IN const struct timespec *ts,
++    IN OUT struct timespec *td
++    )
++{
++  struct timespec t;
++*/
++
++#if IS_TIMESPEC_64_BIT
++
+     IN const struct timespec *ts,
+     IN OUT struct timespec *td
+     )
+ {
+   struct timespec t;
+ 
++#else
++
++    IN const struct timespec64 *ts,
++    IN OUT struct timespec64 *td
++    )
++{
++  struct timespec64 t;
++
++#endif
++
++// </Antonio-Petricca@2018>
++
+   t.tv_sec  = ts->tv_sec;
+ 
+   // timespec_trunc
+@@ -890,7 +999,17 @@
+ static inline UINT64
+ kernel2ufsd(
+     IN const usuper *sbi,
+-    IN const struct timespec *ts
++// <Antonio-Petricca@2018>
++
++  // IN struct timespec *ts
++
++#if IS_TIMESPEC_64_BIT
++    IN struct timespec *ts
++#else
++    IN struct timespec64 *ts
++#endif
++
++// </Antonio-Petricca@2018>
+     )
+ {
+   return is_posixtime( &sbi->options )? kernel2posix( ts ) : kernel2nt( ts );
+@@ -1233,7 +1352,9 @@
      DebugTrace( 0, UFSD_LEVEL_ERROR, ("**** seq=%x: size 0x%x  asize 0x%x", block->seq, block->size, block->asize ));
      DebugTrace( 0, UFSD_LEVEL_ERROR, ("**** HeapFree(%p) %s barrier failed at 0x%zx", p, hint, PtrOffset( block, tst ) + o ));
      ufsd_turn_on_trace_level();
@@ -10,7 +233,7 @@
      ufsd_revert_trace_level();
      BUG_ON(1);
    }
-@@ -1704,7 +1706,26 @@
+@@ -1704,7 +1825,26 @@
    }
  
    bh->b_state = 0;
@@ -37,7 +260,7 @@
    atomic_set( &bh->b_count, 2 );
    set_bh_page( bh, page, bytes2skip );
    bh->b_size    = 512;
-@@ -1776,8 +1797,21 @@
+@@ -1776,8 +1916,21 @@
    unsigned long nr_pages, nr_anon, nr_free, max_ra;
    struct blk_plug plug;
  
@@ -61,7 +284,7 @@
    max_ra  = ( nr_anon + nr_free ) >> 1;
  
    if ( 0 != sbi->options.raKb ) {
-@@ -1809,10 +1843,28 @@
+@@ -1809,10 +1962,28 @@
    for ( nr_pages = 0; start < end; start++ ) {
      struct page *page;
  
@@ -90,7 +313,7 @@
  #if is_decl( RADIX_TREE_EXCEPTIONAL_ENTRY )
      if ( NULL != page && !radix_tree_exceptional_entry( page ) )
        continue;
-@@ -1885,7 +1937,18 @@
+@@ -1885,7 +2056,18 @@
    sector_t  devblock        = offset >> sb->s_blocksize_bits;
    unsigned long nBlocks     = bytes >> sb->s_blocksize_bits;
    unsigned long cnt         = 0;
@@ -110,7 +333,7 @@
  
    if ( limit >= 0x2000 )
      limit -= 0x1000;
-@@ -5493,8 +5556,24 @@
+@@ -5493,8 +5675,24 @@
  {
    if ( NULL == acl )
      return;
@@ -135,7 +358,26 @@
  }
  
  
-@@ -8612,8 +8691,20 @@
+@@ -7045,7 +7243,17 @@
+ {
+   ssize_t ret;
+   loff_t  end, i_size;
+-  struct timespec now;
++// <Antonio-Petricca@2018>
++
++  // struct timespec now;
++
++#if IS_TIMESPEC_64_BIT
++    struct timespec now;
++#else
++    struct timespec64 now;
++#endif
++
++// </Antonio-Petricca@2018>
+   int dirty                     = 0;
+   struct file  *file            = iocb->ki_filp;
+   struct address_space *mapping = file->f_mapping;
+@@ -8612,8 +8820,20 @@
  #ifdef BIO_UPTODATE
    err = !test_bit( BIO_UPTODATE, &bio->bi_flags );
  #else
@@ -157,7 +399,7 @@
  #endif
  
  //  printk( "end_io_read at %llx sz=%x, cnt=%x\n", (UINT64)BIO_BISECTOR( bio ) << 9, BIO_BISIZE( bio ), (unsigned)bio->bi_vcnt );
-@@ -8663,8 +8754,20 @@
+@@ -8663,8 +8883,20 @@
  #ifdef BIO_UPTODATE
    err = !test_bit( BIO_UPTODATE, &bio->bi_flags );
  #else
@@ -179,7 +421,7 @@
  #endif
  
    if ( err ) {
-@@ -8704,7 +8807,19 @@
+@@ -8704,7 +8936,19 @@
      struct bio *bio = bio_alloc( GFP_NOFS|__GFP_HIGH, nr_vecs ); // GFP_NOIO
      if ( likely( NULL != bio ) ) {
        BIO_BISECTOR( bio ) = first_sector;
@@ -200,7 +442,7 @@
  
        DebugTrace( 0, UFSD_LEVEL_BIO, ("bio+: o=%" PSCT "x", first_sector << 9 ));
        return bio;
-@@ -12366,18 +12481,29 @@
+@@ -12366,18 +12610,29 @@
    mod_timer( &sbi->flush_timer, HZ + sbi->last_dirty + msecs_to_jiffies( sec * 1000 ) );
  }
  
@@ -237,7 +479,7 @@
  
    if ( !sbi->bdirty ) {
      // Do not wake up flush thread
-@@ -12423,7 +12549,18 @@
+@@ -12423,7 +12678,18 @@
    //
    // Set up an interval timer which can be used to trigger a flush wakeup after the flush interval expires
    //
@@ -256,19 +498,19 @@
  
    wake_up( &sbi->wait_done_flush );
  
-@@ -14294,6 +14431,11 @@
+@@ -14294,6 +14560,11 @@
        "Default options: " DEFAULT_MOUNT_OPTIONS "\n"
  #endif
        "" );
 +
 +// <Antonio-Petricca@2018>
-+  printk( KERN_NOTICE QUOTED_UFSD_DEVICE": ported on kernel 4.15-4.17 by Antonio Petricca @ 2018 (https://github.com/antonio-petricca).");
++  printk( KERN_NOTICE QUOTED_UFSD_DEVICE": ported on kernels 4.15 to 4.18 by Antonio Petricca @ 2018 (https://github.com/antonio-petricca).");
 +// </Antonio-Petricca@2018>
 +
    printk( KERN_NOTICE QUOTED_UFSD_DEVICE": PAGE_SIZE=%uK, THREAD_SIZE=%uk\n", (unsigned)(PAGE_SIZE>>10), (unsigned)(THREAD_SIZE>>10) );
  #endif
  
-@@ -14431,7 +14573,18 @@
+@@ -14431,7 +14702,18 @@
  //
  MODULE_DESCRIPTION("Paragon " QUOTED_UFSD_DEVICE " driver");
  MODULE_AUTHOR("Andrey Shedel & Alexander Mamaev");
