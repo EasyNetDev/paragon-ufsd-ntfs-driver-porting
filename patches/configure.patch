@@ -1,6 +1,6 @@
 --- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/configure	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/configure	2018-09-12 16:25:45.032455565 +0200
-@@ -4659,6 +4659,80 @@
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/configure	2018-09-13 08:32:09.870768958 +0200
+@@ -4659,6 +4659,96 @@
  fi
  
  #Check members
@@ -74,6 +74,22 @@
 +
 +cat >>confdefs.h <<_ACEOF
 +#define HAVE_DECL_INIT_BUFFER $ac_have_decl
++_ACEOF
++
++########
++# 4.17 #
++########
++
++ac_fn_c_check_member "$LINENO" "struct address_space" "tree_lock" "ac_cv_member_struct_address_space_tree_lock" "#include <linux/fs.h>
++"
++if test "x$ac_cv_member_struct_address_space_tree_lock" = xyes; then :
++  ac_have_decl=1
++else
++  ac_have_decl=0
++fi
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_STRUCT_ADDRESS_SPACE_TREE_LOCK $ac_have_decl
 +_ACEOF
 +
 +# </Antonio-Petricca@2018>
