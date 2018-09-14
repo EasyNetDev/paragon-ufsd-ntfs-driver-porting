@@ -14,9 +14,10 @@ echo "Decompressing..."
 
 SOURCES_DIR=$(readlink -f $(dirname $0))/sources
 
-   ([ -d ${SOURCES_DIR} ] || mkdir -p ${SOURCES_DIR}) \
+[ -d ${SOURCES_DIR} ] && (rm -rf ${SOURCES_DIR} || exit $?)
+
+   mkdir -p ${SOURCES_DIR} \
 && cd ${SOURCES_DIR} \
-&& rm -rf * \
 && tar xf ${PARAGON_FILE} \
 || exit $?
 
