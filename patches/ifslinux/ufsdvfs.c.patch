@@ -1,5 +1,5 @@
---- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/ifslinux/ufsdvfs.c	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/ufsdvfs.c	2018-09-13 13:59:17.555163299 +0200
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/assets/tmp/paragon/ifslinux/ufsdvfs.c	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/ifslinux/ufsdvfs.c	2018-09-26 14:56:00.238218685 +0200
 @@ -707,10 +707,21 @@
  //
  // Converts posix time into timestamp
@@ -504,7 +504,7 @@
        "" );
 +
 +// <Antonio-Petricca@2018>
-+  printk( KERN_NOTICE QUOTED_UFSD_DEVICE": ported on kernels 4.15 to 4.18 by Antonio Petricca @ 2018 (https://github.com/antonio-petricca).");
++  printk( KERN_NOTICE QUOTED_UFSD_DEVICE": ported on kernels 4.14 to 4.18 by Antonio Petricca @ 2018 (https://github.com/antonio-petricca/paragon-ufsd-ntfs-driver-porting).");
 +// </Antonio-Petricca@2018>
 +
    printk( KERN_NOTICE QUOTED_UFSD_DEVICE": PAGE_SIZE=%uK, THREAD_SIZE=%uk\n", (unsigned)(PAGE_SIZE>>10), (unsigned)(THREAD_SIZE>>10) );

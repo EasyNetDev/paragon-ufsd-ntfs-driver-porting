@@ -1,5 +1,5 @@
---- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/configure	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/configure	2018-09-13 08:32:09.870768958 +0200
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/assets/tmp/paragon/configure	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/configure	2018-09-13 08:32:09.870768958 +0200
 @@ -4659,6 +4659,96 @@
  fi
  

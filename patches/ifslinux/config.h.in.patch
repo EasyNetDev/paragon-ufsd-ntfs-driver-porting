@@ -1,5 +1,5 @@
---- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/assets/tmp/paragon/ifslinux/config.h.in	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting/ifslinux/config.h.in	2018-09-13 13:47:32.106095754 +0200
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/assets/tmp/paragon/ifslinux/config.h.in	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/ifslinux/config.h.in	2018-09-13 13:47:32.106095754 +0200
 @@ -1,5 +1,80 @@
  /* ifslinux/config.h.in.  Generated from configure.in by autoheader.  */
  
