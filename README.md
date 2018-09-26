@@ -14,11 +14,11 @@ In order to publish this project I received the written (eMail) permission from 
 
 ## State of the art
 
-At the time I am writing (September 13, 2018) it supports kernel up to the 4.12.
+At the time I am writing (September 26, 2018) it supports kernel up to the 4.12.
 
 ## Goals
 
-The goal of this project is to support kernels 4.14 to 4.18.
+The goal of this project is to support kernels 4.13 to 4.18.
 
 ## How to build
 
