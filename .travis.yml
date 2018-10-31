@@ -1,0 +1,13 @@
+/* 
+  https://docs.travis-ci.com/user/tutorial/
+  https://docs.travis-ci.com/user/languages/c/
+  https://docs.travis-ci.com/user/notifications/
+  https://docs.travis-ci.com/user/build-stages/
+*/
+
+language: c
+sudo: enabled
+os: linux
+
+script:
+  echo "Hello world!"
