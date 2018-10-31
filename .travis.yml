@@ -3,11 +3,13 @@
   https://docs.travis-ci.com/user/languages/c/
   https://docs.travis-ci.com/user/notifications/
   https://docs.travis-ci.com/user/build-stages/
+  https://docs.travis-ci.com/user/installing-dependencies
 */
 
 language: c
 sudo: enabled
 os: linux
+compiler: gcc
 
-script:
-  echo "Hello world!"
+script: 
+- echo "Hello world!"
