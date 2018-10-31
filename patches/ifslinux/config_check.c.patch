@@ -1,0 +1,14 @@
+--- config_check.c-original	2018-10-31 12:31:35.097138977 +0200
++++ config_check.c		2018-10-31 12:31:49.533138977 +0200
+@@ -160,7 +160,11 @@
+   while (offset<fsize) {
+     oldfs = get_fs();
+     set_fs(get_ds());
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+     ret = vfs_read(filp, in, IN_SIZE, &offset);
++#else
++    ret = kernel_read(filp, in, IN_SIZE, &offset);
++#endif
+     set_fs(oldfs);
+ 
+     if (ret < 1) {
