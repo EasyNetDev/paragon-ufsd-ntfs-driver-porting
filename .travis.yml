@@ -8,11 +8,6 @@
   http://blog.tgrrtt.com/exploring-the-travisci-configuration-file
 */
 
-language: c
-sudo: enabled
-os: linux
-compiler: gcc
-
 notifications: # set notification options
   email:
     recipients:
