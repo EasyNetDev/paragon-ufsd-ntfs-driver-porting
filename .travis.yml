@@ -4,6 +4,8 @@
   https://docs.travis-ci.com/user/notifications/
   https://docs.travis-ci.com/user/build-stages/
   https://docs.travis-ci.com/user/installing-dependencies
+  https://docs.travis-ci.com/user/status-images/
+  http://blog.tgrrtt.com/exploring-the-travisci-configuration-file
 */
 
 language: c
@@ -11,5 +13,16 @@ sudo: enabled
 os: linux
 compiler: gcc
 
+notifications: # set notification options
+  email:
+    recipients:
+      - antonio.petricca@gmail.com
+    on_success: always
+    on_error: always
+
+branches:
+  only:
+     -ci
+
 script: 
-- echo "Hello world!"
+  - echo "Hello world!"
