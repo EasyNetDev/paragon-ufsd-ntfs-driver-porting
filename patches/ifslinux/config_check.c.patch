@@ -1,0 +1,32 @@
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/assets/tmp/paragon/ifslinux/config_check.c	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/ifslinux/config_check.c	2018-11-08 15:52:40.381655257 +0100
+@@ -18,6 +18,11 @@
+ // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF NOT ADVISED OF
+ // THE POSSIBILITY OF SUCH DAMAGE.
+ // </copyright>
++
++// <Antonio-Petricca@2018>
++#include <linux/version.h>
++// </Antonio-Petricca@2018>
++
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+@@ -160,7 +165,17 @@
+   while (offset<fsize) {
+     oldfs = get_fs();
+     set_fs(get_ds());
++  
++  // <Antonio-Petricca@2018>
++    //ret = vfs_read(filp, in, IN_SIZE, &offset);
++    
++  #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+     ret = vfs_read(filp, in, IN_SIZE, &offset);
++  #else
++    ret = kernel_raed(filp, in, IN_SIZE, &offset);
++  #endif
++  // </Antonio-Petricca@2018>
++    
+     set_fs(oldfs);
+ 
+     if (ret < 1) {
