@@ -1,6 +1,6 @@
 --- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/assets/tmp/paragon/ifslinux/config.h.in	2017-09-08 18:06:41.000000000 +0200
-+++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/ifslinux/config.h.in	2018-10-05 06:34:12.136827414 +0200
-@@ -1,5 +1,80 @@
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/ifslinux/config.h.in	2018-12-28 15:31:54.018121584 +0100
+@@ -1,5 +1,86 @@
  /* ifslinux/config.h.in.  Generated from configure.in by autoheader.  */
  
 +// <Antonio-Petricca@2018>
@@ -71,6 +71,12 @@
 +  #define IS_TIMESPEC_64_BIT 0
 +#endif
 +
++/********/
++/* 4.20 */
++/********/
++
++#undef HAVE_DECL_TIME_TO_TM
++
 +/*
 +  https://elixir.bootlin.com/linux/latest/source/include/linux/fs.h#L572
 +  https://elixir.bootlin.com/linux/v4.17.19/source/include/linux/fs.h#L570
@@ -81,7 +87,7 @@
  /* Blkdev_issue_flush V3 macro helper */
  #undef Blkdev_issue_flush
  
-@@ -588,3 +663,22 @@
+@@ -588,3 +669,22 @@
  
  /* HAVE_STRUCT_ helper macro */
  #undef is_struct

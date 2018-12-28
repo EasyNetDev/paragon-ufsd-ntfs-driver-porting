@@ -36,6 +36,7 @@ function applyPatch {
 && applyPatch ifslinux/config.h.in \
 && applyPatch ifslinux/config_check.c \
 && applyPatch ifslinux/ufsdvfs.c \
+&& applyPatch ifslinux/vfsdebug.c \
 || exit $?
 
 echo "Configuration completed. Please, look at README.md in order to build and run the patched driver."

@@ -1,0 +1,114 @@
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/assets/tmp/paragon/ifslinux/vfsdebug.c	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/ifslinux/vfsdebug.c	2018-12-28 23:31:42.878858362 +0100
+@@ -31,7 +31,7 @@
+ 
+ Author:
+ 
+-    Ahdrey Shedel
++    Ahdrey Shedel 
+ 
+ Revision History:
+ 
+@@ -73,9 +73,27 @@
+ //
+ // #define UFSD_DEFAULT_LOGTO  "/ufsd/ufsd.log"
+ 
++// <Antonio-Petricca@2018>
++
++#if defined UFSD_DEBUG && ( LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0) )
++
++  #include "fs_conf.h"
++  #define UFSD_DEFAULT_LOGTO  "/var/log/ufsd.log"
++
++#endif
++
++// </Antonio-Petricca@2018>
++
+ #ifdef UFSD_DEFAULT_LOGTO
+   char ufsd_trace_file[128]       = UFSD_DEFAULT_LOGTO;
+-  unsigned long ufsd_trace_level  = ~(UFSD_LEVEL_VFS_WBWE|UFSD_LEVEL_MEMMNGR|UFSD_LEVEL_IO|UFSD_LEVEL_UFSDAPI);
++
++// <Antonio-Petricca@2018>
++
++  //unsigned long ufsd_trace_level  = ~(UFSD_LEVEL_VFS_WBWE|UFSD_LEVEL_MEMMNGR|UFSD_LEVEL_IO|UFSD_LEVEL_UFSDAPI);
++  unsigned long ufsd_trace_level  = ~(UFSD_LEVEL_WBWE|UFSD_LEVEL_MEMMNGR|UFSD_LEVEL_IO|UFSD_LEVEL_UFSDAPI);
++
++// </Antonio-Petricca@2018>
++  
+   unsigned long ufsd_cycle_mb     = 25;
+ #else
+   char ufsd_trace_file[128]       = "";
+@@ -263,16 +281,35 @@
+   if ( NULL != file->f_op->write )
+     ret = file->f_op->write( file, buf, len, ppos );
+   else{
++
+ #if is_decl( NEW_SYNC_WRITE )
+     // Use f_op->write_iter
+     ret = file->f_op->write_iter
+       ? new_sync_write( file, buf, len, ppos )
+       : -EINVAL;
+ #else
++
++    // Use f_op->aio_write
++    /*ret = file->f_op->aio_write
++      ? do_sync_write( file, buf, len, ppos )
++      : -EINVAL;*/ 
++
++    
++// <Antonio-Petricca@2018>
++
++  #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++    ret = file->f_op->write_iter
++      ? vfs_write( file, buf, len, ppos )
++      : -EINVAL;
++  #else
+     // Use f_op->aio_write
+     ret = file->f_op->aio_write
+       ? do_sync_write( file, buf, len, ppos )
+       : -EINVAL;
++  #endif
++
++// </Antonio-Petricca@2018>
++
+ #endif
+   }
+ #endif
+@@ -903,11 +940,35 @@
+   struct tm tm;
+ #if 0
+   // print time in UTC
+-  time_to_tm( get_seconds(), 0, &tm );
++
++// <Antonio-Petricca@2018>
++  
++  //time_to_tm( get_seconds(), 0, &tm );
++
++  #if HAVE_DECL_TIME_TO_TM
++    time_to_tm( get_seconds(), 0, &tm );
++  #else
++    time64_to_tm( get_seconds(), 0, &tm );
++  #endif
++
++// </Antonio-Petricca@2018>
++
+   return snprintf( buffer, buffer_len, "%ld-%02d-%02d %02d:%02d:%02d UTC", 1900 + tm.tm_year, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec );
+ #else
+   // print local time
+-  time_to_tm( get_seconds(), -sys_tz.tz_minuteswest * 60, &tm );
++
++// <Antonio-Petricca@2018>
++  
++  //time_to_tm( get_seconds(), -sys_tz.tz_minuteswest * 60, &tm );
++  
++  #if HAVE_DECL_TIME_TO_TM
++    time_to_tm( get_seconds(), -sys_tz.tz_minuteswest * 60, &tm );
++  #else
++    time64_to_tm( get_seconds(), -sys_tz.tz_minuteswest * 60, &tm );
++  #endif
++  
++// </Antonio-Petricca@2018>
++
+   return snprintf( buffer, buffer_len, "%ld-%02d-%02d %02d:%02d:%02d", 1900 + tm.tm_year, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec );
+ #endif
+ }

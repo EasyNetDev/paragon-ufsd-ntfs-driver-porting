@@ -18,7 +18,7 @@ At the time I am writing (September 26, 2018) it supports kernel up to the 4.12.
 
 ## Goals
 
-The goal of this project is to support kernels 4.13 and newer.
+The goal of this project is to support kernels 4.13 and newers.
 
 ## How to build
 
