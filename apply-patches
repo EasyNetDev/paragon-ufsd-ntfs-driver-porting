@@ -33,6 +33,7 @@ function applyPatch {
 }
 
    applyPatch configure \
+&& applyPatch Makefile.in \
 && applyPatch ifslinux/config.h.in \
 && applyPatch ifslinux/config_check.c \
 && applyPatch ifslinux/ufsdvfs.c \

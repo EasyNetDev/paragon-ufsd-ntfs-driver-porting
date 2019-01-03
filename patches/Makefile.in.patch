@@ -1,0 +1,64 @@
+--- /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/assets/tmp/paragon/Makefile.in	2017-09-08 18:06:41.000000000 +0200
++++ /home/antonio/projects/bitbucket/paragon-ntfs-driver-porting-development/Makefile.in	2019-01-03 17:08:11.332960911 +0100
+@@ -27,12 +27,15 @@
+ MODULE_EXTRA_FLAGS := -include $(src)$(MODULE_SRC)/fs_conf.h -DUFSD_DEVICE=@MODULE_NAME@ -DUFSD_USE_ASM_DIV64
+ ifeq (@BUILD_WITH_DEBUG@,1)
+ MODULE_EXTRA_FLAGS += -DUFSD_DEBUG -g3 -ggdb3
+-LDFLAGS   += -d
++LDFLAGS += -d
++KBUILD_LDFLAGS += -d
+ else
+ MODULE_EXTRA_FLAGS += -DNDEBUG -g0
+ #In some cases -x breaks exports
+-#LDFLAGS   += -s -O2 -d -x -X
+-LDFLAGS   += -s -O2 -d -X
++#LDFLAGS += -s -O2 -d -x -X
++#KBUILD_LDFLAGS += -s -O2 -d -x -X
++LDFLAGS += -s -O2 -d -X
++KBUILD_LDFLAGS += -s -O2 -d -X
+ endif
+ 
+ ifeq (@HAVE_DRV_CONFIG@,1)
+@@ -51,7 +54,7 @@
+     CONFIG_UFSD_FS = m
+ endif
+ 
+-MODULE_OBJECTS += $(MODULE_SRC)/$(MODULE_LIBNAME).bin
++MODULE_OBJECTS += $(MODULE_SRC)/$(MODULE_LIBNAME).o
+ $(MODULE_NAME)-objs := $(MODULE_OBJECTS)
+ $(MODULE_NAME)-y := $(MODULE_OBJECTS)
+ 
+@@ -103,8 +106,8 @@
+ 	$(shell echo "#undef UFSD_KCONFIG_HASH_VAL" >> $(obj)/$(MODULE_SRC)/hash_val.h)
+ endif
+ 
+-$(src)$(MODULE_SRC)/$(MODULE_LIBNAME).bin:
+-	@@LN_S@ "@UFSD_LIBRARY@" "$(src)$(MODULE_SRC)/$(MODULE_LIBNAME).bin"
++$(src)$(MODULE_SRC)/$(MODULE_LIBNAME).o:
++	@@LN_S@ "@UFSD_LIBRARY@" "$(src)$(MODULE_SRC)/$(MODULE_LIBNAME).o"
+ 
+ clean:
+ 	# rename *.a and *.so libs to *.a.ufsd and *.so.ufsd so kernel's "make clean" won't delete them
+@@ -112,7 +115,7 @@
+ 	@$(MAKE) -C "@KERNEL_SOURCE_DIR@" SUBDIRS="@PWD@" clean 2>&1 > /dev/null
+ 	# and rename them back
+ 	@if [ -d linutil/objfre ]; then for file in $(wildcard linutil/objfre/*.a) $(wildcard linutil/objfre/*.so); do mv -n $$file.ufsd $$file; done; fi
+-	@@RM@ -Rf "$(src)$(MODULE_SRC)/$(MODULE_LIBNAME).bin"
++	@@RM@ -Rf "$(src)$(MODULE_SRC)/$(MODULE_LIBNAME).o"
+ 	@[ -f $(src)$(MODULE_SRC)/hash_val.h ] && @RM@ $(MODULE_SRC)/hash_val.h || @TRUE@
+ 
+ -include $(TOPDIR)/Rules.make
+@@ -121,9 +124,13 @@
+ 	@$(MAKE) -C "@KERNEL_SOURCE_DIR@" M="@PWD@" O="@KERNEL_BUILD_DIR@" modules V=1 2>&1
+ 
+ driver:$(MODULE_NAME).@MODULE_EXT@
++# <Antonio-Petricca@2018>
++ifeq (@BUILD_WITH_DEBUG@,0)
+ 	@OBJCOPY_MODULE@
+ 	@STRIP_MODULE@
+ 	-@STRIP_MODULE@
++endif
++# </Antonio-Petricca@2018>
+ 
+ ifeq (@ENABLE_INSTALL@,1)
+ install_commands := @MODPROBE@ -qr $(MODULE_NAME) 2>&1 > /dev/null ;
